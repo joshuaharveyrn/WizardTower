@@ -2,24 +2,42 @@ import gpt_2_simple as gpt2
 import os
 import requests
 import sys
+import time
+import flask
+from flask import request
+from flask import jsonify
+
 
 model_name = "124M"
 
-if not os.path.isdir(os.path.join("models", model_name)):
-	print(f"Downloading {model_name} model...")
-	gpt2.download_gpt2(model_name=model_name)   # model is saved into current directory under /models/124M/
-
-file_name = "training_data.txt"
-
-if not os.path.isfile(file_name):
-	with open(file_name, 'w') as f:
-		f.write("Put stuff in here for training please.")
-		sys.exit("You need to have the training data file ready before you execute the program.")
-
 sess = gpt2.start_tf_sess()
-gpt2.finetune(sess,
-              file_name,
-              model_name=model_name,
-              steps=1000)   # steps is max number of training steps
 
-gpt2.generate(sess)
+gpt2.load_gpt2(sess, model_name=model_name)
+
+app = flask.Flask(__name__)
+app.config["DEBUG"] = True
+
+"""
+conversation = ""
+
+while True:
+	input_text = input()
+
+	conversation = conversation + input_text
+
+	#gpt2.generate(sess, model_name=model_name)
+	single_text = gpt2.generate(sess, return_as_list=True, prefix=conversation, length=50, temperature=0.7, truncate="<|endoftext|>", include_prefix=False)[0]
+
+	print(single_text)
+	time.sleep(1)
+"""
+
+@app.route('/response', methods=['POST'])
+def get_gpt_response():
+	conversation = request.form['conversation']
+	print(conversation)
+	print(str(conversation))
+	single_text = gpt2.generate(sess, return_as_list=True, prefix=str(conversation), length=50, temperature=0.7, truncate="<|endoftext|>", include_prefix=False)[0]
+	return jsonify(single_text)
+
+app.run()
