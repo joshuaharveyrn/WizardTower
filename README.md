@@ -1,7 +1,4 @@
-# Instructions
+# Wizard Tower
 
-In the terminal, run
-
-```
-pip3 install gpt-2-simple
-```
+This is the backend for Wizard Tower.
+Run train.py to train the model with the data in training_data.txt.
